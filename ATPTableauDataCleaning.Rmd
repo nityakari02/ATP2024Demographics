@@ -1,0 +1,235 @@
+---
+title: "ATP Dataset Cleaning"
+output: html_notebook
+---
+
+```{r}
+install.packages("haven")
+install.packages("writexl")
+
+library(haven)
+library(writexl)
+
+# Replace 'your_file_path.sav' with the actual path to .sav file
+data <- read_sav("/Users/nitwit/Desktop/google trends/W114_Sept22/ATP W114.sav")
+
+# Replace 'your_output_path.csv' with the output file path
+write.csv(data, "/Users/nitwit/Desktop/google trends/W114_Sept22/ATP W114.csv", row.names = FALSE)
+```
+
+```{r}
+library(dplyr)
+library(haven)
+library(tidyr)
+
+data <- read.csv("/Users/nitwit/Desktop/google trends/W114_Sept22/ATP W114.csv")
+```
+
+```{r}
+filtered_data <- data %>%
+  select(QKEY, F_AGECAT, F_GENDER, F_CREGION, F_METRO, MHEALTH3_W114, 
+         MH_TRACK_a_W114, MH_TRACK_b_W114, MH_TRACK_c_W114, MH_TRACK_d_W114, MH_TRACK_e_W114, MH_TRACK_CV_W114, #measures of mental health
+         COVID_VAXDMOD_W114, COVID_BOOST_W114, #COVID-19 vaccination status and booster status
+         CVDVAR2_W114, COVID_INFECT_a_W114, COVID_INFECT_b_W114, #COVID-19 impact 
+         CVD_PROBS_PARTISAN_W114, CVD_PROBS_COMPLEX_W114, CVD_PROBS_NOCOMPLY_W114, CVD_PROBS_FALSEMIS_W114, CVD_PROBS_OVEREAX_W114, 
+         HLTHOFCL2_W114, #Views on public health officials
+         WEIGHT_W114, WEIGHT_W84_W114, WEIGHT_W64_W66_W83_W114, # Weights
+         )
+
+  # MH_TRACK_a_W114 - nervousness, MH_TRACK_b_W114 - depression, MH_TRACK_c_W114 - loneliness, MH_TRACK_d_W114 - hopefulness, 
+  # MH_TRACK_e_W114 - difficulty sleeping, MH_TRACK_CV - Physical reactions when thinking about the coronavirus outbreak
+  
+  #COVID_VAXDMOD - COVID-19 vaccination status, COVID_BOOST - COVID-19 booster status
+  
+  # COVID-19impact
+  # COVIDEGFP - Rating of various entities' response to the coronavirus outbreak
+  # CVDVAR2 - Impact of new coronavirus variants on the country's efforts to control the outbreak
+  # CVD_PROBS - Factors contributing to problems dealing with the coronavirus outbreak
+  
+  # HLTHOFCL1 - Views on public health officials' performance during the coronavirus outbreak
+  # HLTHOFCL2 - Views on public health officials' communication effectiveness
+  
+  # WEIGHT_W84_W114 - longitudinal weight, WEIGHT_W64_W66_W83_W114 - for MH3
+
+  # The W114 dataset contains the created variable MHEALTH3, an additive index of 5 mental health measures: MH_TRACK_a, MH_TRACK_b, MH_TRACK_c, MH_TRACK_e, MH_TRACK_CV. In addition to the index created from W114 data (MHEALTH3_W114), the W114 dataset also includes the MHEALTH3 index from waves 64, W66, and W83.
+```
+
+```{r}
+cleaned_data <- filtered_data %>%
+  mutate(F_GENDER = case_when(
+    F_GENDER == 1 ~ "Male",
+    F_GENDER == 2 ~ "Female",
+    F_GENDER == 3 ~ "Other",
+    F_GENDER == 99 ~ NA_character_
+  )) %>%
+  mutate(F_AGECAT = case_when(
+    F_AGECAT == 1 ~ "18-29", 
+    F_AGECAT == 2 ~ "30-49",
+    F_AGECAT == 3 ~ "50-64",
+    F_AGECAT == 4 ~ "65+",
+    F_AGECAT == 99 ~ NA_character_
+  )) %>%
+  mutate(F_CREGION = case_when(
+    F_CREGION == 1 ~ "Northeast",
+    F_CREGION == 2 ~ "Midwest",
+    F_CREGION == 3 ~ "South",
+    F_CREGION == 4 ~ "West",
+  )) %>%
+  mutate(F_METRO = case_when(
+    F_METRO == 1 ~ "Metropolitan",
+    F_METRO == 2 ~ "Non-metropolitan"
+  ))
+
+cleaned_data <- cleaned_data %>%
+  mutate(MH_TRACK_a_W114 = case_when(
+    MH_TRACK_a_W114 == 1 ~ "Rarely or none of the time (less than 1 day)",
+    MH_TRACK_a_W114 == 2 ~ "Some or a little of the time (1-2 days)", 
+    MH_TRACK_a_W114 == 3 ~ "Occasionally or a moderate amount of time (3-4 days)", 
+    MH_TRACK_a_W114 == 4 ~ "Most or all of the time (5-7 days)", 
+  )) %>%
+  mutate(MH_TRACK_b_W114 = case_when(
+    MH_TRACK_b_W114 == 1 ~ "Rarely or none of the time (less than 1 day)",
+    MH_TRACK_b_W114 == 2 ~ "Some or a little of the time (1-2 days)", 
+    MH_TRACK_b_W114 == 3 ~ "Occasionally or a moderate amount of time (3-4 days)", 
+    MH_TRACK_b_W114 == 4 ~ "Most or all of the time (5-7 days)", 
+  )) %>%
+  mutate(MH_TRACK_c_W114 = case_when(
+    MH_TRACK_c_W114 == 1 ~ "Rarely or none of the time (less than 1 day)",
+    MH_TRACK_c_W114 == 2 ~ "Some or a little of the time (1-2 days)", 
+    MH_TRACK_c_W114 == 3 ~ "Occasionally or a moderate amount of time (3-4 days)", 
+    MH_TRACK_c_W114 == 4 ~ "Most or all of the time (5-7 days)", 
+  )) %>%
+  mutate(MH_TRACK_d_W114 = case_when(
+    MH_TRACK_d_W114 == 1 ~ "Rarely or none of the time (less than 1 day)",
+    MH_TRACK_d_W114 == 2 ~ "Some or a little of the time (1-2 days)", 
+    MH_TRACK_d_W114 == 3 ~ "Occasionally or a moderate amount of time (3-4 days)", 
+    MH_TRACK_d_W114 == 4 ~ "Most or all of the time (5-7 days)", 
+  )) %>%
+  mutate(MH_TRACK_e_W114 = case_when(
+    MH_TRACK_e_W114 == 1 ~ "Rarely or none of the time (less than 1 day)",
+    MH_TRACK_e_W114 == 2 ~ "Some or a little of the time (1-2 days)", 
+    MH_TRACK_e_W114 == 3 ~ "Occasionally or a moderate amount of time (3-4 days)", 
+    MH_TRACK_e_W114 == 4 ~ "Most or all of the time (5-7 days)", 
+  )) %>%
+  mutate(MH_TRACK_CV_W114 = case_when(
+    MH_TRACK_CV_W114 == 1 ~ "Rarely or none of the time (less than 1 day)",
+    MH_TRACK_CV_W114 == 2 ~ "Some or a little of the time (1-2 days)", 
+    MH_TRACK_CV_W114 == 3 ~ "Occasionally or a moderate amount of time (3-4 days)", 
+    MH_TRACK_CV_W114 == 4 ~ "Most or all of the time (5-7 days)", 
+  )) %>%
+  mutate(MHEALTH3_W114 = case_when(
+    MHEALTH3_W114 == 1 ~ "low - bottom 50%",
+    MHEALTH3_W114 == 2 ~ "medium - next quarter",
+    MHEALTH3_W114 == 3 ~ "high - top quarter"
+  ))
+
+cleaned_data <- cleaned_data %>%
+  mutate(COVID_VAXDMOD_W114 = case_when(
+    COVID_VAXDMOD_W114 == 1 ~ "Yes, have had all the shots needed to be fully vaccinated",
+    COVID_VAXDMOD_W114 == 2 ~ "Yes, have had one shot but still need one more",
+    COVID_VAXDMOD_W114 == 3 ~ "No, have not received a vaccine",
+  )) %>%
+  mutate(COVID_BOOST_W114 = case_when(
+    COVID_BOOST_W114 == 1 ~ "Yes, have received a booster shot",
+    COVID_BOOST_W114 == 2 ~ "No, have not received a booster shot",
+    COVID_BOOST_W114 == 3 ~ "Does not apply to me",
+  ))
+
+cleaned_data <- cleaned_data %>%
+  mutate(CVDVAR2_W114 = case_when(
+    CVDVAR2_W114 == 1 ~ "Lead to a major setback for the country's efforts to contain the disease",
+    CVDVAR2_W114 == 2 ~ "Not have a major impact on the country’s efforts to contain the disease",
+  )) %>%
+  mutate(COVID_INFECT_a_W114 = case_when( # You might spread the coronavirus to other people without knowing that you have it
+    COVID_INFECT_a_W114 == 1 ~ "Very concerned",
+    COVID_INFECT_a_W114 == 2 ~ "Somewhat concerned",
+    COVID_INFECT_a_W114 == 3 ~ "Not too concerned",
+    COVID_INFECT_a_W114 == 4 ~ "Not at all concerned",
+  )) %>%
+  mutate(COVID_INFECT_b_W114 = case_when( # You will get the coronavirus and require hospitalization
+    COVID_INFECT_b_W114 == 1 ~ "Very concerned",
+    COVID_INFECT_b_W114 == 2 ~ "Somewhat concerned",
+    COVID_INFECT_b_W114 == 3 ~ "Not too concerned",
+    COVID_INFECT_b_W114 == 4 ~ "Not at all concerned",
+  ))
+
+cleaned_data <- cleaned_data %>%
+  mutate(CVD_PROBS_PARTISAN_W114 = case_when( # Disagreement between Democrats and Republicans about how to handle the outbreak
+    CVD_PROBS_PARTISAN_W114 == 1 ~ "A lot",
+    CVD_PROBS_PARTISAN_W114 == 2 ~ "Some",
+    CVD_PROBS_PARTISAN_W114 == 3 ~ "Not too much",
+    CVD_PROBS_PARTISAN_W114 == 4 ~ "Not at all",
+  )) %>%
+  mutate(CVD_PROBS_COMPLEX_W114 = case_when( # The complex nature of the coronavirus
+    CVD_PROBS_COMPLEX_W114 == 1 ~ "A lot",
+    CVD_PROBS_COMPLEX_W114 == 2 ~ "Some",
+    CVD_PROBS_COMPLEX_W114 == 3 ~ "Not too much",
+    CVD_PROBS_COMPLEX_W114 == 4 ~ "Not at all",
+  )) %>%
+  mutate(CVD_PROBS_NOCOMPLY_W114 = case_when( # Ordinary Americans failing to follow public health recommendations
+    CVD_PROBS_NOCOMPLY_W114 == 1 ~ "A lot",
+    CVD_PROBS_NOCOMPLY_W114 == 2 ~ "Some",
+    CVD_PROBS_NOCOMPLY_W114 == 3 ~ "Not too much",
+    CVD_PROBS_NOCOMPLY_W114 == 4 ~ "Not at all",
+  )) %>%
+  mutate(CVD_PROBS_FALSEMIS_W114 = case_when( # False and misleading information about the coronavirus and vaccines
+    CVD_PROBS_FALSEMIS_W114 == 1 ~ "A lot",
+    CVD_PROBS_FALSEMIS_W114 == 2 ~ "Some",
+    CVD_PROBS_FALSEMIS_W114 == 3 ~ "Not too much",
+    CVD_PROBS_FALSEMIS_W114 == 4 ~ "Not at all",
+  )) %>%
+  mutate(CVD_PROBS_OVEREAX_W114 = case_when( # Government officials overreacting to the coronavirus outbreak
+    CVD_PROBS_OVEREAX_W114 == 1 ~ "A lot",
+    CVD_PROBS_OVEREAX_W114 == 2 ~ "Some",
+    CVD_PROBS_OVEREAX_W114 == 3 ~ "Not too much",
+    CVD_PROBS_OVEREAX_W114 == 4 ~ "Not at all",
+  ))
+
+cleaned_data <- cleaned_data %>%
+  mutate(HLTHOFCL2_W114 = case_when(
+    HLTHOFCL2_W114 == 1 ~ "Excellent",
+    HLTHOFCL2_W114 == 2 ~ "Good",
+    HLTHOFCL2_W114 == 3 ~ "Only fair",
+    HLTHOFCL2_W114 == 4 ~ "Poor",
+  ))
+```
+
+```{r}
+merged_data <- cleaned_data %>%
+  inner_join(filtered_data, by = "QKEY")
+
+write.csv(merged_data, "/Users/nitwit/Desktop/google trends/W114_Sept22/ATP W114_merged.csv", row.names = FALSE)
+```
+
+```{r}
+write.csv(cleaned_data, "/Users/nitwit/Desktop/google trends/W114_Sept22/ATP W114_cleaned1.csv", row.names = FALSE)
+write.csv(filtered_data, "/Users/nitwit/Desktop/google trends/W114_Sept22/ATP W114_filtered.csv", row.names = FALSE)
+```
+
+
+
+```{r}
+filtered_data <- filtered_data %>%
+  mutate(MHEALTH_W114 = MH_TRACK_a_W114 + 
+                       MH_TRACK_b_W114 + 
+                       MH_TRACK_c_W114 + 
+                       MH_TRACK_e_W114 + 
+                       MH_TRACK_CV_W114) #All MH Outcomes excluding Hopefulness (MH_TRACK_d_W114)
+
+filtered_data <- filtered_data %>%
+  mutate(MHEALTH3_W114 = case_when(
+    MHEALTH_W114 >= 5 & MHEALTH_W114 <= 8 ~ 1,
+    MHEALTH_W114 >= 9 & MHEALTH_W114 <= 11 ~ 2,
+    MHEALTH_W114 >= 12 & MHEALTH_W114 <= 20 ~ 3
+  )) %>%
+  mutate(MHEALTH3_W114 = factor(MHEALTH3_W114, 
+                                levels = c(1, 2, 3), 
+                                labels = c("low - bottom 50%", 
+                                           "medium - next quarter", 
+                                           "high - top quarter"))) 
+
+ 
+```
+
+
+
